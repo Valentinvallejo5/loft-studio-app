@@ -76,10 +76,13 @@ export default function App() {
         <p>Prototipo de la app oficial de <b>Loft Studio Barre & Yoga</b> ({STUDIO.barrio}). Centraliza reservas, packs, eventos y tienda, que hoy están repartidos entre Siguefit, WhatsApp, Instagram y la web.</p>
         <p>Datos reales: grilla, packs y precios, dirección, teléfono, mats, eventos y testimonios del estudio. Profe con nombre: solo Flor Méndez (la única pública).</p>
         <p><span className="k">Ingresar como socia</span> carga una cuenta demo con pack y reservas. <span className="k">Quiero empezar</span> arranca de cero.</p>
-        <p>Probá: reservar y cancelar (deshacer), lista de espera (se libera un lugar a los 20 s), comprar un pack, comprar un mat, subir comprobante, agendar en el calendario.</p>
+        <p>Probá: reservar y cancelar (deshacer), lista de espera (se libera un lugar a los 20 s), comprar un pack o un mat pagando con transferencia, Mercado Pago, tarjeta o efectivo (pagos simulados), check-in con QR, agendar en el calendario.</p>
         <p style={{ color: "#8a857f" }}>Gestión de Productos Digitales 2 · UdeSA · Equipo 5</p>
       </aside>
+      <div className="iphone">
+        <span className="btn-side mute" /><span className="btn-side volu" /><span className="btn-side vold" /><span className="btn-side power" />
       <div className="phone" ref={scrollRef}>
+        <StatusBar />
         <div className="notch-pad" />
         <View key={cur.name + JSON.stringify(cur.params)} app={app} params={cur.params} />
         {conTabs && (
@@ -87,8 +90,27 @@ export default function App() {
             {TABS.map(([k, l, ic]) => <button key={k} aria-current={cur.name === k ? "page" : undefined} onClick={() => nav.reset(k)}><Icon name={ic} />{l}{k === "tienda" && app.cartCount > 0 && <span className="badge" style={{ top: 4, right: "calc(50% - 22px)" }}>{app.cartCount}</span>}</button>)}
           </nav>
         )}
+        <div className="home-ind" />
         <Toast t={toast?.t} k={toast?.k} label={toast?.undo ? "Deshacer" : "Ver"} onAction={toast?.undo ? () => { dispatch({ type: "deshacer" }); setToast({ t: "Listo, tu lugar sigue reservado." }); } : toast?.go ? () => { nav.go(...toast.go); setToast(null); } : undefined} onClose={() => setToast(null)} />
       </div>
+      </div>
+    </div>
+  );
+}
+
+function StatusBar() {
+  const [t, setT] = useState(() => new Date());
+  useEffect(() => { const id = setInterval(() => setT(new Date()), 15000); return () => clearInterval(id); }, []);
+  const hh = `${t.getHours()}:${String(t.getMinutes()).padStart(2, "0")}`;
+  return (
+    <div className="statusbar" aria-hidden="true">
+      <span>{hh}</span>
+      <span className="island" />
+      <span className="right">
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="0.8" fill="currentColor" /><rect x="5" y="5.5" width="3" height="6.5" rx="0.8" fill="currentColor" /><rect x="10" y="3" width="3" height="9" rx="0.8" fill="currentColor" /><rect x="15" y="0" width="3" height="12" rx="0.8" fill="currentColor" /></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 9.6a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2Zm0-3.6c1.7 0 3.2.7 4.3 1.8l-1.3 1.3a4.3 4.3 0 0 0-6 0L4.2 7.8A6.1 6.1 0 0 1 8.5 6Zm0-3.6c2.7 0 5.1 1.1 6.9 2.9L14.1 6.6a7.9 7.9 0 0 0-11.2 0L1.6 5.3A9.7 9.7 0 0 1 8.5 2.4Z" fill="currentColor" transform="translate(0,-1.4)" /></svg>
+        <svg width="28" height="13" viewBox="0 0 28 13"><rect x="0.5" y="0.5" width="24" height="12" rx="3.5" stroke="currentColor" opacity="0.4" fill="none" /><rect x="2" y="2" width="19" height="9" rx="2" fill="currentColor" /><path d="M26 4.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity="0.5" /></svg>
+      </span>
     </div>
   );
 }

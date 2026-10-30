@@ -39,6 +39,15 @@ export function Bienvenida({ app }) {
   );
 }
 
+function DemoAviso({ texto }) {
+  return (
+    <div className="row g10" style={{ background: "var(--rosa-50)", border: "1px solid #ecd3d5", borderRadius: 14, padding: "10px 12px", alignItems: "flex-start" }}>
+      <Icon name="info" size={18} color="#9a5a5e" style={{ marginTop: 1 }} />
+      <span className="xs" style={{ color: "#7a4a4e", lineHeight: 1.45 }}>{texto}</span>
+    </div>
+  );
+}
+
 /* ---------- Login / registro (email + código, sin contraseña) ---------- */
 export function Login({ app, params }) {
   const socia = params.modo === "socia";
@@ -93,15 +102,16 @@ export function Login({ app, params }) {
               {!socia && <Field label="Celular (opcional)" type="tel" value={tel} onChange={(e) => setTel(e.target.value)} hint="Solo para avisarte si cambia una clase." inputMode="tel" placeholder="11 2345 6789" />}
             </div>
             <Btn onClick={seguir} disabled={enviando}>{enviando ? <span className="spin" /> : "Enviarme el código"}</Btn>
-            {socia && <p className="xs muted tc" style={{ margin: 0 }}>Demo: cualquier email entra con la cuenta de ejemplo.</p>}
+            <DemoAviso texto={socia ? "Prototipo: no se envía ningún mail. Poné cualquier email y después cualquier código de 4 números; entra con la cuenta de ejemplo (Caro)." : "Prototipo: no se envía ningún mail. Después del email, cualquier código de 4 números te deja entrar."} />
             {!socia && <p className="xs muted tc" style={{ margin: 0 }}>Al continuar aceptás la política de packs del estudio: duran 30 días y no son transferibles.</p>}
           </>
         ) : (
           <>
             <div className="col g6">
               <h1 className="display h1">Revisá tu mail</h1>
-              <p className="muted" style={{ margin: 0 }}>Te mandamos un código de 4 dígitos a <b style={{ color: "var(--ink)" }}>{email}</b>. En esta demo, cualquier código sirve.</p>
+              <p className="muted" style={{ margin: 0 }}>Te mandamos un código de 4 dígitos a <b style={{ color: "var(--ink)" }}>{email}</b>.</p>
             </div>
+            <DemoAviso texto="Prototipo: el código es de mentira. No llegó ningún mail; escribí 4 números cualesquiera (por ejemplo 1 2 3 4) y entrás." />
             <div className="row g10 center">
               {code.map((v, k) => (
                 <input key={k} ref={refs[k]} value={v} onChange={(e) => onCode(k, e.target.value)} onKeyDown={(e) => onKey(k, e)} inputMode="numeric" aria-label={`Dígito ${k + 1}`} disabled={enviando}
