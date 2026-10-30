@@ -123,6 +123,7 @@ export function Reservas({ app }) {
                 <div className="col grow" style={{ gap: 2 }}>
                   <span className="h3" style={{ fontSize: 15 }}>{c.nombre}</span>
                   <span className="xs muted">{fmtFecha(c.fecha)} · {PROFES[c.profe].nombre}</span>
+                  <span className="xs" style={{ color: r.medio === "efectivo" ? "#9a5a5e" : "var(--gris)" }}>{r.pago === "pack" ? "Con tu pack" : r.medio === "efectivo" ? `Clase suelta · pagás ${fmt(r.precio)} al llegar` : `Clase suelta · pagada${r.comprobante ? ` · N° ${r.comprobante}` : ""}`}</span>
                   {pronto && <span className="xs b" style={{ color: "var(--sage-800)" }}>Empieza en {m < 60 ? `${Math.max(1, Math.round(m))} min` : `${Math.round(m / 60)} h`}</span>}
                 </div>
                 <Icon name="next" color="var(--gris-2)" />
@@ -202,8 +203,10 @@ export function Detalle({ app, params }) {
   const pack = app.packActivo;
   const packSirve = pack && pack.left > 0 && (!pack.soloYoga || esYoga(c));
   const suelta = PACKS[0];
-  const [pago, setPago] = useState(packSirve ? "pack" : "tarjeta");
-  const [sheet, setSheet] = useState(null); // 'confirmar' | 'ok'
+  const [pago, setPago] = useState(packSirve ? "pack" : "suelta");
+  const [medio, setMedio] = useState("transf"); // medio para clase suelta
+  const precioSuelta = medio === "transf" ? suelta.transf : medio === "efectivo" ? suelta.efectivo : suelta.tarjeta;
+  const [sheet, setSheet] = useState(null); // 'confirmar' | 'pagando' | 'ok'
   const [cargando, setCargando] = useState(false);
   const prof = PROFES[c.profe];
   const d = parseYmd(c.fecha);
@@ -214,16 +217,18 @@ export function Detalle({ app, params }) {
   const headInk = tone === "clay" ? "#9a5a5e" : tone === "sand" ? "var(--ink-2)" : "var(--sage-800)";
   const otras = app.clases.filter((x) => x.tipo === c.tipo && x.id !== c.id && !esPasada(x) && app.libres(x) > 0).slice(0, 3);
 
+  const [comp, setComp] = useState(null);
   const reservar = () => {
+    if (pago === "suelta" && medio !== "efectivo") { setSheet("pagando"); return; }
     setCargando(true);
-    setTimeout(() => { app.dispatch({ type: "reservar", clase: c, pago: pago === "pack" ? "pack" : "suelta" }); setCargando(false); setSheet("ok"); }, 900);
+    setTimeout(() => { app.dispatch({ type: "reservar", clase: c, pago: pago === "pack" ? "pack" : "suelta", medio: pago === "suelta" ? medio : null, precio: pago === "suelta" ? precioSuelta : 0 }); setCargando(false); setSheet("ok"); }, 900);
   };
   const share = async () => { const r = await compartir(`${c.nombre} en LoftStudio`, `${fmtFecha(c.fecha, true)} a las ${c.hora} · ${STUDIO.direccion}, ${STUDIO.barrio}. ¿Venís?`); app.toast(r === "copied" ? "Copiado para compartir." : r ? "Compartido." : "No se pudo compartir."); };
 
   const footer = pasada ? <Btn kind="neutral" onClick={app.back}>Esta clase ya pasó</Btn>
     : mia ? <><div className="row center g6 small b" style={{ color: "var(--sage-800)" }}><Icon name="check" size={18} stroke={2.4} /> Tenés tu lugar en esta clase</div>{minutosHasta(c) < 45 && minutosHasta(c) > -60 && <Btn onClick={() => app.tab("inicio")}><Icon name="spark" size={18} /> Hacer check-in desde Inicio</Btn>}<div className="row g8"><Btn kind="neutral" size="sm" className="grow" onClick={() => descargarICS(c)}><Icon name="calplus" size={18} /> Agendar</Btn><Btn kind="neutral" size="sm" className="grow" onClick={share}><Icon name="share" size={18} /> Invitar</Btn></div><Btn kind="ghost" onClick={() => app.reset("clases", { sub: "reservas" })}>Ver mis reservas</Btn></>
     : llena && !liberado ? <>{enEspera ? <Btn kind="neutral" onClick={() => { app.dispatch({ type: "espera", id: c.id }); app.toast("Saliste de la lista de espera."); }}>Salir de la lista de espera</Btn> : <Btn onClick={() => app.anotarEspera(c)}><Icon name="bell" size={18} /> Anotarme en la lista de espera</Btn>}<Btn kind="ghost" onClick={() => app.reset("clases", { sub: "explorar", fecha: c.fecha })}>Ver otros horarios</Btn></>
-    : <><Btn onClick={() => setSheet("confirmar")} disabled={cargando}>{pago === "pack" ? "Reservar con mi pack" : `Reservar · clase suelta ${fmt(suelta.tarjeta)}`}</Btn><span className="xs muted tc">Cancelación sin costo hasta 2 horas antes de la clase.</span></>;
+    : <><Btn onClick={() => setSheet("confirmar")} disabled={cargando}>{pago === "pack" ? "Reservar con mi pack" : `Reservar · clase suelta ${fmt(precioSuelta)}`}</Btn><span className="xs muted tc">Cancelación sin costo hasta 2 horas antes de la clase.</span></>;
 
   return (
     <div className="screen">
@@ -265,7 +270,18 @@ export function Detalle({ app, params }) {
           <div className="col g10">
             <h2 className="display h2">Cómo querés pagar</h2>
             <Radio on={pago === "pack"} disabled={!packSirve} onClick={() => setPago("pack")} title={pack ? `Con mi ${pack.nombre}` : "Con un pack"} sub={!pack ? "No tenés un pack activo" : pack.left <= 0 ? "Ya no te quedan clases en este pack" : pack.soloYoga && !esYoga(c) ? "Tu Pack YOGA no incluye Barre" : `Te quedan ${pack.left} ${pack.left === 1 ? "clase" : "clases"} · vence el ${fmtFecha(pack.vence)}${pack.pendiente ? " · pago pendiente" : ""}`} right={packSirve ? "Incluida" : undefined} />
-            <Radio on={pago === "tarjeta"} onClick={() => setPago("tarjeta")} title="Clase suelta con tarjeta" sub="Pagás en la app, sin mandar comprobantes" right={fmt(suelta.tarjeta)} />
+            <Radio on={pago === "suelta"} onClick={() => setPago("suelta")} title="Clase suelta" sub={`Desde ${fmt(suelta.efectivo)} · pagás en la app o en el estudio`} right={fmt(precioSuelta)} />
+            {pago === "suelta" && (
+              <div className="col g8" style={{ paddingLeft: 4 }}>
+                <span className="eyebrow">Medio de pago</span>
+                <div className="row g8 wrap">
+                  {[["transf", "Transferencia", suelta.transf], ["mp", "Mercado Pago", suelta.tarjeta], ["tarjeta", "Tarjeta", suelta.tarjeta], ["efectivo", "Efectivo en Loft", suelta.efectivo]].map(([k, l, v]) => (
+                    <button key={k} className="pill" aria-pressed={medio === k} onClick={() => setMedio(k)} style={{ minHeight: 40 }}>{l} · {fmt(v)}</button>
+                  ))}
+                </div>
+                <span className="xs muted">Precios del estudio: {fmt(suelta.efectivo)} en efectivo o transferencia, {fmt(suelta.tarjeta)} con tarjeta o Mercado Pago.</span>
+              </div>
+            )}
             {!packSirve && <button className="link small" style={{ alignSelf: "flex-start" }} onClick={() => app.go("packs")}>Ver packs · desde {fmt(PACKS[1].efectivo)} las 4 clases</button>}
           </div>
         )}
@@ -283,18 +299,19 @@ export function Detalle({ app, params }) {
         <div className="card p col g10">
           <div className="row g12"><DateBox d={DIAS[weekday(d)]} h={c.hora} tone={toneOf(c)} /><div className="col grow" style={{ gap: 2 }}><span className="h3">{c.nombre}</span><span className="xs muted">{fmtFecha(c.fecha, true)} · {prof.nombre}</span></div></div>
           <div className="hr" />
-          <div className="row between small"><span className="muted">Pago</span><span className="b">{pago === "pack" ? `${pack.nombre} · queda${pack.left - 1 === 1 ? "" : "n"} ${pack.left - 1}` : `Clase suelta · ${fmt(suelta.tarjeta)}`}</span></div>
+          <div className="row between small"><span className="muted">Pago</span><span className="b">{pago === "pack" ? `${pack.nombre} · queda${pack.left - 1 === 1 ? "" : "n"} ${pack.left - 1}` : `Clase suelta · ${fmt(precioSuelta)} · ${{ transf: "transferencia", mp: "Mercado Pago", tarjeta: "tarjeta", efectivo: "efectivo en Loft" }[medio]}`}</span></div>
           <div className="row between small"><span className="muted">Recordatorio</span><span className="b">{st.ajustes.recordatorios ? "1 hora antes" : "Desactivado"}</span></div>
         </div>
-        <Btn onClick={reservar} disabled={cargando}>{cargando ? <span className="spin" /> : "Confirmar"}</Btn>
+        <Btn onClick={reservar} disabled={cargando}>{cargando ? <span className="spin" /> : pago === "suelta" && medio !== "efectivo" ? (medio === "transf" ? "Ir a transferir" : `Pagar ${fmt(precioSuelta)}`) : "Confirmar"}</Btn>
         <Btn kind="ghost" onClick={() => setSheet(null)}>Volver</Btn>
       </Sheet>
 
+      {sheet === "pagando" && <PagoSim metodo={medio} monto={precioSuelta} concepto={`Clase suelta ${c.nombre} · LoftStudio`} onClose={() => setSheet("confirmar")} onDone={(r) => { setComp(r.comprobante); app.dispatch({ type: "reservar", clase: c, pago: "suelta", medio, precio: precioSuelta, comprobante: r.comprobante }); setSheet("ok"); }} />}
       <Sheet open={sheet === "ok"} onClose={() => setSheet(null)}>
         <div className="col center g12 tc" style={{ padding: "8px 0" }}>
           <span className="check-anim" style={{ width: 76, height: 76, borderRadius: 38, background: "var(--sage-700)", display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name="check" size={34} stroke={2.8} color="#fff" /></span>
           <h2 className="display h1" style={{ fontSize: 22 }}>¡Lugar confirmado!</h2>
-          <p className="small muted" style={{ margin: 0 }}>{c.nombre} · {fmtFecha(c.fecha)} a las {c.hora}. Te mandamos la confirmación por mail{st.ajustes.recordatorios ? " y te recordamos 1 hora antes." : "."}</p>
+          <p className="small muted" style={{ margin: 0 }}>{c.nombre} · {fmtFecha(c.fecha)} a las {c.hora}. Te mandamos la confirmación por mail{st.ajustes.recordatorios ? " y te recordamos 1 hora antes." : "."}{comp ? ` Comprobante N° ${comp} guardado.` : pago === "suelta" && medio === "efectivo" ? ` Abonás ${fmt(precioSuelta)} en efectivo al llegar.` : ""}</p>
         </div>
         <div className="row g8"><Btn kind="neutral" size="sm" className="grow" onClick={() => descargarICS(c)}><Icon name="calplus" size={18} /> Agendar</Btn><Btn kind="neutral" size="sm" className="grow" onClick={share}><Icon name="share" size={18} /> Invitar</Btn></div>
         <Btn onClick={() => { setSheet(null); app.reset("clases", { sub: "reservas" }); }}>Ver mis reservas</Btn>

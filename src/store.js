@@ -114,8 +114,8 @@ function reducer(st, a) {
       const c = a.clase;
       let pack = st.pack, pago = a.pago;
       if (pago === "pack" && pack && pack.left > 0) pack = { ...pack, left: pack.left - 1 };
-      const n = notif("Tu lugar está confirmado", `${c.nombre} · ${fmtCorta(c.fecha)} ${c.hora}. Te esperamos en Loft.`, { go: ["detalle", { id: c.id }] });
-      return { ...st, pack, reservas: [...st.reservas, { id: c.id, pago, rem: st.ajustes.recordatorios, creada: Date.now() }], espera: st.espera.filter((x) => x !== c.id), liberados: (st.liberados || []).filter((x) => x !== c.id), notifs: [n, ...st.notifs] };
+      const n = notif("Tu lugar está confirmado", `${c.nombre} · ${fmtCorta(c.fecha)} ${c.hora}.${a.comprobante ? ` Pago ${fmt(a.precio)} · comprobante N° ${a.comprobante}.` : a.medio === "efectivo" ? ` Abonás ${fmt(a.precio)} en efectivo al llegar.` : ""} Te esperamos en Loft.`, { go: ["detalle", { id: c.id }] });
+      return { ...st, pack, reservas: [...st.reservas, { id: c.id, pago, medio: a.medio || null, precio: a.precio || 0, comprobante: a.comprobante || null, rem: st.ajustes.recordatorios, creada: Date.now() }], espera: st.espera.filter((x) => x !== c.id), liberados: (st.liberados || []).filter((x) => x !== c.id), notifs: [n, ...st.notifs] };
     }
     case "cancelar": {
       const r = st.reservas.find((x) => x.id === a.id);
