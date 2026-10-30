@@ -36,6 +36,11 @@ export default function App() {
   const [toast, setToastRaw] = useState(null);
   const setToast = useCallback((v) => setToastRaw(v ? { ...v, k: Date.now() } : null), []);
   const scrollRef = useRef(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const fit = () => { if (window.innerWidth <= 520) return setScale(1); setScale(Math.min(1, (window.innerHeight - 40) / 884, (window.innerWidth - 40) / 430)); };
+    fit(); window.addEventListener("resize", fit); return () => window.removeEventListener("resize", fit);
+  }, []);
 
   useEffect(() => { const el = scrollRef.current?.querySelector(".scroll"); if (el) el.scrollTop = 0; }, [cur.name, JSON.stringify(cur.params)]);
   useEffect(() => { document.title = `LoftStudio · ${cur.name === "inicio" ? "Barre & Yoga" : cur.name[0].toUpperCase() + cur.name.slice(1)}`; }, [cur.name]);
@@ -79,7 +84,7 @@ export default function App() {
         <p>Probá: reservar y cancelar (deshacer), lista de espera (se libera un lugar a los 20 s), comprar un pack o un mat pagando con transferencia, Mercado Pago, tarjeta o efectivo (pagos simulados), check-in con QR, agendar en el calendario.</p>
         <p style={{ color: "#8a857f" }}>Gestión de Productos Digitales 2 · UdeSA · Equipo 5</p>
       </aside>
-      <div className="iphone">
+      <div className="iphone" style={{ transform: `scale(${scale})` }}>
         <span className="btn-side mute" /><span className="btn-side volu" /><span className="btn-side vold" /><span className="btn-side power" />
       <div className="phone" ref={scrollRef}>
         <StatusBar />
