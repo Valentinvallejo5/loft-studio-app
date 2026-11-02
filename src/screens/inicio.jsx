@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Avatar, Bar, Btn, DateBox, Empty, Eyebrow, Field, Icon, Logo, Photo, Sheet, Stars, Switch, Tag, TopBar } from "../ui.jsx";
-import { DIAS, EVENTOS, PACKS, PROFES, STUDIO, TYPES } from "../data.js";
+import { DIAS, EVENTOS, NOVEDADES, PACKS, PROFES, STUDIO, TYPES } from "../data.js";
 import { esPasada, fmt, fmtFecha, hoy, minutosHasta, parseYmd, weekday } from "../store.js";
 import { descargarICS, igUrl, inicial, mapsUrl, primerNombre, telUrl, tiempoRel, waUrl } from "../utils.js";
 import { ClaseRow } from "./clases.jsx";
@@ -33,7 +33,7 @@ export function Inicio({ app }) {
           <Logo h={28} />
           <div className="row g4">
             <button className="icon-btn" aria-label={`Notificaciones${sinLeer ? `, ${sinLeer} sin leer` : ""}`} onClick={() => app.go("notifs")}><Icon name="bell" />{sinLeer > 0 && <span className="badge dot" />}</button>
-            <button className="icon-btn" aria-label="Mi perfil" onClick={() => app.tab("perfil")}><Avatar>{inicial(st.user?.nombre)}</Avatar></button>
+            <button className="icon-btn" aria-label="Mi perfil" onClick={() => app.tab("perfil")}>{st.user?.foto ? <img src={st.user.foto} alt="" style={{ width: 40, height: 40, borderRadius: 20, objectFit: "cover" }} /> : <Avatar>{inicial(st.user?.nombre)}</Avatar>}</button>
           </div>
         </div>
 
@@ -113,6 +113,22 @@ export function Inicio({ app }) {
           ))}
         </div>
 
+        <div className="col g10">
+          <div className="row between" style={{ alignItems: "baseline" }}><h2 className="display h2">Novedades de Loft</h2><a className="xs b" href={igUrl} target="_blank" rel="noreferrer" style={{ color: "var(--sage-800)" }}>@{STUDIO.instagram}</a></div>
+          <div className="scroll-x">
+            {NOVEDADES.map((n) => (
+              <a key={n.t} href={igUrl} target="_blank" rel="noreferrer" className="card col" style={{ width: 230, textDecoration: "none", color: "inherit", overflow: "hidden" }}>
+                <Photo name={n.img} alt="" cover h={130} radius={0} />
+                <div className="col g4" style={{ padding: 12 }}>
+                  <span className="xs muted">{n.fecha} · ♥ {n.likes}</span>
+                  <span className="small b" style={{ lineHeight: 1.3 }}>{n.t}</span>
+                  <span className="xs muted" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{n.s}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+
         <Invitar app={app} />
 
         <div className="card soft col g10" style={{ padding: 18 }}>
@@ -169,7 +185,11 @@ export function Perfil({ app }) {
       <div className="scroll"><div className="pad">
         <div className="row between" style={{ paddingTop: 12 }}><h1 className="display h1">Mi perfil</h1><button className="icon-btn white" aria-label="Editar datos" onClick={() => setEdit(true)}><Icon name="edit" size={20} /></button></div>
         <div className="row g14">
-          <Avatar lg>{inicial(st.user?.nombre)}</Avatar>
+          <label style={{ position: "relative", cursor: "pointer" }} title="Cambiar foto">
+            {st.user?.foto ? <img src={st.user.foto} alt="" style={{ width: 64, height: 64, borderRadius: 32, objectFit: "cover", display: "block" }} /> : <Avatar lg>{inicial(st.user?.nombre)}</Avatar>}
+            <span className="row center" style={{ position: "absolute", right: -2, bottom: -2, width: 24, height: 24, borderRadius: 12, background: "var(--sage-700)", color: "#fff", border: "2px solid var(--crema)" }}><Icon name="edit" size={12} stroke={2.2} /></span>
+            <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (!f) return; const img = new Image(); img.onload = () => { const c = document.createElement("canvas"); const S = 160; c.width = S; c.height = S; const r = Math.max(S / img.width, S / img.height); const w = img.width * r, h = img.height * r; c.getContext("2d").drawImage(img, (S - w) / 2, (S - h) / 2, w, h); app.dispatch({ type: "avatar", foto: c.toDataURL("image/jpeg", 0.8) }); app.toast("Foto actualizada."); URL.revokeObjectURL(img.src); }; img.src = URL.createObjectURL(f); }} />
+          </label>
           <div className="col" style={{ gap: 2 }}><span className="h3" style={{ fontSize: 18 }}>{st.user?.nombre}</span><span className="xs muted">{st.user?.email || "Sin email"}</span><span className="xs muted">Socia desde {st.user?.desde}</span></div>
         </div>
         <div className="row g10">
@@ -210,9 +230,19 @@ export function Perfil({ app }) {
             <Row ic="pin" t="El estudio" s={`${STUDIO.direccion}, ${STUDIO.barrio}`} onClick={() => app.go("estudio")} />
             <Row ic="bag" t="Mis pedidos y packs" s={st.pedidos.length ? `${st.pedidos.length} ${st.pedidos.length === 1 ? "pedido" : "pedidos"}` : "Todavía no compraste"} onClick={() => app.go("pedidos")} />
             <Row ic="spark" t="Encuentros & eventos" s="Clínica Barre, Encuentros, Loft Reset" onClick={() => app.go("eventos")} />
+            <Row ic="info" t="Ayuda y políticas" s="Packs, cancelaciones, qué traer" onClick={() => app.go("ayuda")} />
             <Row ic="wa" t="Escribinos por WhatsApp" s="Lun a vie, 8 a 20 h" href={waUrl} right={<Icon name="share" size={16} color="var(--gris-2)" />} />
             <Row ic="ig" t={`@${STUDIO.instagram}`} s={`${STUDIO.seguidores} seguidoras`} href={igUrl} right={<Icon name="share" size={16} color="var(--gris-2)" />} />
           </div>
+        </div>
+
+        <div className="col g10">
+          <div className="row g8"><h2 className="display h2">Modo estudio</h2><Tag tone="clay">Demo</Tag></div>
+          <button className="card tap btn-reset p row g12 dark" style={{ color: "var(--crema)" }} onClick={() => app.go("panel")}>
+            <span className="avatar" style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}><Icon name="star" size={20} /></span>
+            <div className="col grow" style={{ gap: 2 }}><span className="small b" style={{ color: "#fff" }}>Panel del estudio</span><span className="xs" style={{ color: "#cfd6cb" }}>Ocupación, ingresos, lista de espera y métricas del TP</span></div>
+            <Icon name="next" color="#cfd6cb" />
+          </button>
         </div>
 
         <div className="card list">

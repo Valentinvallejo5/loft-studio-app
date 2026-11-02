@@ -169,3 +169,23 @@ export const EVENTOS = [
 export const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 export const DIAS_LARGO = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 export const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+/* ---------- Novedades [REAL] últimos posts de @loftstudioar ---------- */
+export const NOVEDADES = [
+  { fecha: "27 oct", t: "Así vivimos el Día de la Madre en Loft", s: "Clase de barre + sound healing + brunch, sorpresas y regalitos para compartir. Gracias a @organicareal y @zapateriafebo.", img: "yoga-mats", likes: 96 },
+  { fecha: "7 oct", t: "Diccionario de Barre, parte 2", s: "Palabras que escuchás en Barre y no sabés qué significan: pulsos chiquitos, tuck, relevé…", img: "hero-barre", likes: 138 },
+  { fecha: "7 oct", t: "TIPS si te estás por comprar tu primer mat", s: "Los Mats de LoftStudio podés encontrarlos en la app o pedirlos en Loft.", img: "mats-plantas", likes: 50 },
+  { fecha: "23 sep", t: "¿Barre y Pilates son lo mismo?", s: "Te contamos las diferencias y qué podés encontrar en una clase de Barre, para que sepas si es para vos.", img: "accesorios-loft", likes: 246 },
+  { fecha: "21 sep", t: "Loft Reset con Makaku House", s: "Nos llevamos momentos, nuevas conexiones y ganas de repetirlo. Así vivimos este día de RESET.", img: "mats-plantas", likes: 85 },
+];
+
+/* ---------- Preguntas frecuentes (políticas reales del estudio) ---------- */
+export const FAQ = [
+  { q: "¿Cuánto dura un pack?", a: "30 días desde el día de la compra. No son transferibles a otras personas y no se puede extender la fecha si no pudiste venir." },
+  { q: "¿Hasta cuándo puedo cancelar una clase?", a: "Sin costo hasta 2 horas antes. Después de ese horario la clase se descuenta igual del pack." },
+  { q: "¿Qué tengo que llevar a Barre?", a: "Medias antideslizantes y ropa cómoda. Mancuernas, bandas, pelota y mats los tenés en el estudio." },
+  { q: "¿Puedo venir sin pack?", a: "Sí, con clase suelta: $28.000 en efectivo o transferencia y $32.000 con tarjeta o Mercado Pago." },
+  { q: "¿Cómo pago por transferencia?", a: `Desde la app te llevamos a tu banco con el alias ${STUDIO.alias} ya cargado. El comprobante queda guardado acá, no hace falta mandarlo por WhatsApp.` },
+  { q: "¿Qué pasa si una clase está llena?", a: "Te anotás en la lista de espera. Si se libera un lugar te avisamos por la app y por mail, y tenés 15 minutos para tomarlo." },
+  { q: "¿Se puede alquilar el Loft?", a: "Sí, para talleres, constelaciones y encuentros. Escribinos por WhatsApp y coordinamos." },
+];

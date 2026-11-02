@@ -239,3 +239,66 @@ body { background: #e9e5db; overflow: hidden; }
 .skel { background: linear-gradient(90deg, var(--arena) 25%, #fff 50%, var(--arena) 75%); background-size: 200% 100%; animation: sk 1.2s infinite; border-radius: 10px; }
 @keyframes sk { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------- splash ---------- */
+.splash { position: absolute; inset: 0; z-index: 50; background: var(--crema); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; animation: splashOut 0.5s ease 1.5s forwards; }
+.splash .mark { animation: splashIn 0.7s cubic-bezier(.2,.8,.2,1) both; }
+.splash .sub { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gris); animation: splashIn 0.7s 0.25s cubic-bezier(.2,.8,.2,1) both; }
+.splash .spark { position: absolute; width: 10px; height: 10px; color: var(--sage); animation: twinkle 1.6s ease-in-out infinite; }
+@keyframes splashIn { from { opacity: 0; transform: translateY(10px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes splashOut { to { opacity: 0; visibility: hidden; } }
+@keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+/* ---------- transición de pantalla ---------- */
+.screen { animation: screenIn 0.24s cubic-bezier(.2,.8,.2,1); }
+.screen.back { animation: screenBack 0.22s cubic-bezier(.2,.8,.2,1); }
+@keyframes screenIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@keyframes screenBack { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+.screen.tabswitch { animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- galería ---------- */
+.gallery { position: relative; height: 380px; background: #fff; overflow: hidden; }
+.gallery .track { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.gallery .track::-webkit-scrollbar { display: none; }
+.gallery .track > div { flex: none; width: 100%; height: 100%; scroll-snap-align: start; }
+.gallery .dots { position: absolute; left: 0; right: 0; bottom: 14px; display: flex; justify-content: center; gap: 6px; }
+.gallery .dots span { width: 6px; height: 6px; border-radius: 3px; background: rgba(59,56,54,0.25); transition: all 0.2s; }
+.gallery .dots span.on { width: 18px; background: var(--sage-800); }
+
+/* ---------- timeline pedido ---------- */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline .step { display: flex; gap: 12px; align-items: flex-start; position: relative; padding-bottom: 16px; }
+.timeline .step:last-child { padding-bottom: 0; }
+.timeline .step::before { content: ""; position: absolute; left: 10px; top: 22px; bottom: 0; width: 2px; background: var(--linea); }
+.timeline .step:last-child::before { display: none; }
+.timeline .step.done::before { background: var(--sage-700); }
+.timeline .dot { width: 22px; height: 22px; flex: none; border-radius: 11px; border: 2px solid var(--linea); background: #fff; display: flex; align-items: center; justify-content: center; z-index: 1; }
+.timeline .step.done .dot { background: var(--sage-700); border-color: var(--sage-700); }
+.timeline .step.now .dot { border-color: var(--sage-700); box-shadow: 0 0 0 4px var(--sage-50); }
+.timeline .step.now .dot::after { content: ""; width: 8px; height: 8px; border-radius: 4px; background: var(--sage-700); }
+
+/* ---------- login social ---------- */
+.social { min-height: 50px; border-radius: 25px; border: 1.5px solid var(--linea); background: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; font-size: 14.5px; color: var(--ink); width: 100%; }
+.or { display: flex; align-items: center; gap: 12px; color: var(--gris-2); font-size: 12px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--linea); }
+
+/* ---------- detalle con foto ---------- */
+.cover { position: relative; height: 300px; overflow: hidden; }
+.cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(30,30,28,0.25) 0%, rgba(30,30,28,0) 35%, rgba(30,30,28,0.78) 100%); }
+.cover .txt { position: absolute; left: 20px; right: 20px; bottom: 18px; color: #fff; display: flex; flex-direction: column; gap: 8px; }
+
+/* ---------- mini gráfico panel ---------- */
+.bars { display: flex; align-items: flex-end; gap: 6px; height: 90px; }
+.bars .b { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.bars .b i { display: block; width: 100%; border-radius: 6px 6px 2px 2px; background: var(--sage-100); min-height: 4px; }
+.bars .b.hi i { background: var(--sage-700); }
+.bars .b span { font-size: 10px; color: var(--gris); }
+.kpi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kpi .card { padding: 14px; }
+.delta { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--sage-50); color: var(--sage-800); }
+.delta.down { background: #f6e3e0; color: var(--rojo); }
+.scroll-x { display: flex; gap: 12px; overflow-x: auto; margin: 0 -20px; padding: 2px 20px 6px; scrollbar-width: none; scroll-snap-type: x mandatory; }
+.scroll-x::-webkit-scrollbar { display: none; }
+.scroll-x > * { flex: none; scroll-snap-align: start; }

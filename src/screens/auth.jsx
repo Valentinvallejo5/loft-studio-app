@@ -83,6 +83,15 @@ export function Login({ app, params }) {
       }, 900);
     }
   };
+  const social = (prov) => {
+    setEnviando(true);
+    setTimeout(() => {
+      const nm = socia ? "Caro" : (nombre.trim() || "Valentina Pérez");
+      app.dispatch({ type: "login", nombre: nm, email: email || `${nm.split(" ")[0].toLowerCase()}@${prov.toLowerCase()}.com`, tel, demo: socia });
+      app.reset("inicio");
+      app.toast(`Ingresaste con ${prov} (simulado). ¡Hola, ${nm.split(" ")[0]}!`);
+    }, 1100);
+  };
   const onKey = (k, e) => { if (e.key === "Backspace" && !code[k] && k > 0) refs[k - 1].current?.focus(); };
 
   return (
@@ -102,6 +111,11 @@ export function Login({ app, params }) {
               {!socia && <Field label="Celular (opcional)" type="tel" value={tel} onChange={(e) => setTel(e.target.value)} hint="Solo para avisarte si cambia una clase." inputMode="tel" placeholder="11 2345 6789" />}
             </div>
             <Btn onClick={seguir} disabled={enviando}>{enviando ? <span className="spin" /> : "Enviarme el código"}</Btn>
+            <div className="or">o continuá con</div>
+            <div className="row g10">
+              <button className="social" onClick={() => social("Apple")}><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.2-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.6-1-2.6-3.8zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.5z" /></svg> Apple</button>
+              <button className="social" onClick={() => social("Google")}><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5c-.3 1.5-1.1 2.8-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z" /><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1C3.3 21.3 7.3 24 12 24z" /><path fill="#FBBC05" d="M5.3 14.3c-.5-1.5-.5-3.1 0-4.6V6.6H1.3c-1.7 3.4-1.7 7.4 0 10.8l4-3.1z" /><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4C17.9 1.2 15.1 0 12 0 7.3 0 3.3 2.7 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9z" /></svg> Google</button>
+            </div>
             <DemoAviso texto={socia ? "Prototipo: no se envía ningún mail. Poné cualquier email y después cualquier código de 4 números; entra con la cuenta de ejemplo (Caro)." : "Prototipo: no se envía ningún mail. Después del email, cualquier código de 4 números te deja entrar."} />
             {!socia && <p className="xs muted tc" style={{ margin: 0 }}>Al continuar aceptás la política de packs del estudio: duran 30 días y no son transferibles.</p>}
           </>

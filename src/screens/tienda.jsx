@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Btn, Empty, Eyebrow, Field, Header, Icon, Option, Photo, Pill, Radio, Sheet, Tag, TopBar } from "../ui.jsx";
 import { MATS, MAT_PRICE, PAGOS, PROPS, STUDIO, dimsOf, matById, matKey, matTitle } from "../data.js";
 import { fmt, fmtFecha, hoy } from "../store.js";
@@ -98,7 +98,7 @@ export function Producto({ app, params }) {
     <div className="screen">
       <TopBar transparent onBack={app.back} right={<button className="icon-btn white" aria-label={`Carrito, ${app.cartCount} productos`} onClick={() => app.go("carrito")}><Icon name="cart" />{app.cartCount > 0 && <span className="badge">{app.cartCount}</span>}</button>} />
       <div className="scroll">
-        <div style={{ height: 380, background: "#fff" }}><Photo name={m.img} alt={`${matTitle(m)} ${m.tag}`} h="100%" cover={!!m.fit} radius={0} /></div>
+        <Galeria fotos={[[m.img, `${matTitle(m)} ${m.tag}`, !!m.fit], [m.color === "verde" ? "yoga-mats" : "mats-plantas", "Mats Loft en el estudio", true], ["accesorios-loft", "Mat con accesorios de clase", true]]} />
         <div className="pad" style={{ paddingTop: 20 }}>
           <div className="col g6">
             <Eyebrow>Mats Loft</Eyebrow>
@@ -123,6 +123,18 @@ export function Producto({ app, params }) {
           {app.cartCount > 0 && <Btn kind="outline" size="sm" style={{ minHeight: 52 }} onClick={() => app.go("carrito")}>Ver carrito ({app.cartCount})</Btn>}
         </div>
       </div>
+    </div>
+  );
+}
+
+function Galeria({ fotos }) {
+  const ref = useRef(null); const [i, setI] = useState(0);
+  useEffect(() => { const el = ref.current; if (!el) return; const on = () => setI(Math.round(el.scrollLeft / el.clientWidth)); el.addEventListener("scroll", on, { passive: true }); return () => el.removeEventListener("scroll", on); }, []);
+  useEffect(() => { if (ref.current) ref.current.scrollTo({ left: 0 }); }, [fotos[0][0]]);
+  return (
+    <div className="gallery">
+      <div className="track" ref={ref}>{fotos.map(([n, alt, cover], k) => <div key={k}><Photo name={n} alt={alt} cover={cover} h="100%" radius={0} /></div>)}</div>
+      <div className="dots" aria-hidden="true">{fotos.map((_, k) => <span key={k} className={k === i ? "on" : ""} />)}</div>
     </div>
   );
 }
@@ -183,6 +195,7 @@ export function Checkout({ app }) {
   const [err, setErr] = useState({});
   const [cargando, setCargando] = useState(false);
   const [pagando, setPagando] = useState(false);
+  const [cuotas, setCuotas] = useState(1);
   const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.value }));
   const items = st.cart.map((l) => ({ ...l, m: matById(l.id) }));
   const units = items.reduce((a, l) => a + l.qty, 0);
@@ -204,13 +217,13 @@ export function Checkout({ app }) {
   };
   const finalizar = (comprobante) => {
     setCargando(true);
-    setTimeout(() => { const num = `LS-${st.pedidoN}`; app.dispatch({ type: "pedido", entrega, pago: pagoOk, datos: { ...f, envio }, comprobante }); if (!st.user?.tel && f.tel) app.dispatch({ type: "user", data: { tel: f.tel } }); setCargando(false); app.reset("pedido", { num }); }, 600);
+    setTimeout(() => { const num = `LS-${st.pedidoN}`; app.dispatch({ type: "pedido", entrega, pago: pagoOk, datos: { ...f, envio }, comprobante, cuotas: pagoOk === "tarjeta" || pagoOk === "mp" ? cuotas : 1 }); if (!st.user?.tel && f.tel) app.dispatch({ type: "user", data: { tel: f.tel } }); setCargando(false); app.reset("pedido", { num }); }, 600);
   };
   const Sec = ({ n, t }) => <div className="row g10"><span className="row center" style={{ width: 26, height: 26, borderRadius: 13, background: "var(--sage-700)", color: "#fff", fontSize: 13, fontWeight: 700 }}>{n}</span><h2 className="display h2">{t}</h2></div>;
   return (
     <div className="screen">
       <TopBar onBack={app.back} title="Finalizar compra" />
-      {pagando && <PagoSim metodo={pagoOk} monto={total} concepto={`Pedido Mats · LoftStudio`} onClose={() => setPagando(false)} onDone={(r) => { setPagando(false); finalizar(r.comprobante); }} />}
+      {pagando && <PagoSim metodo={pagoOk} monto={(pagoOk === "tarjeta" || pagoOk === "mp") && cuotas === 6 ? Math.round(total * 1.12) : total} concepto={`Pedido Mats · LoftStudio${cuotas > 1 && (pagoOk === "tarjeta" || pagoOk === "mp") ? ` · ${cuotas} cuotas` : ""}`} onClose={() => setPagando(false)} onDone={(r) => { setPagando(false); finalizar(r.comprobante); }} />}
       <div className="scroll"><div className="pad g24" style={{ paddingTop: 4 }}>
         <div className="col g10">
           <Sec n={1} t="Entrega" />
@@ -228,6 +241,7 @@ export function Checkout({ app }) {
           <Sec n={3} t="Medio de pago" />
           {pagos.map((p) => <Radio key={p.id} on={pagoOk === p.id} onClick={() => setPago(p.id)} title={p.t} sub={p.s} />)}
           <div className="card soft p xs" style={{ color: "var(--ink-2)", lineHeight: 1.5 }}>{PAGOS.find((p) => p.id === pagoOk).n}</div>
+          {(pagoOk === "tarjeta" || pagoOk === "mp") && <div className="col g8"><span className="eyebrow">Cuotas</span><div className="row g8">{[1, 3, 6].map((n) => <Option key={n} on={cuotas === n} l={n === 1 ? "1 pago" : `${n} cuotas`} s={n === 1 ? fmt(total) : n === 3 ? `${fmt(Math.round(total / 3))} sin interés` : `${fmt(Math.round((total * 1.12) / 6))} c/u`} onClick={() => setCuotas(n)} />)}</div></div>}
         </div>
         <div className="card p col g10">
           <h2 className="display h2">Resumen</h2>
@@ -251,6 +265,13 @@ export function Pedido({ app, params }) {
   if (!o) return <div className="screen"><TopBar onBack={() => app.tab("tienda")} title="Pedido" /><div className="pad"><Empty title="Todavía no hiciste pedidos" action={<Btn size="sm" onClick={() => app.tab("tienda")}>Ir a la tienda</Btn>} /></div></div>;
   const msg = { mp: `Pagaste con Mercado Pago${o.comprobante ? ` · comprobante N° ${o.comprobante}` : ""}.`, tarjeta: `Pagaste con tarjeta${o.comprobante ? ` · comprobante N° ${o.comprobante}` : ""}.`, transf: `Transferencia acreditada${o.comprobante ? ` · comprobante N° ${o.comprobante}` : ""}. Quedó guardado en la app.`, efectivo: o.estado.startsWith("Pagado") ? "Pagaste en efectivo en el estudio." : "Pagás en efectivo cuando retirás." }[o.pago];
   const pendiente = o.pago === "efectivo" && !o.estado.startsWith("Pagado");
+  const [, tick] = useState(0);
+  useEffect(() => { const id = setInterval(() => tick((x) => x + 1), 5000); return () => clearInterval(id); }, []);
+  const min = (Date.now() - o.fecha) / 60000;
+  const etapa = pendiente ? 0 : min < 0.5 ? 1 : min < 2 ? 2 : 3; // simulación acelerada: 30 s preparando, 2 min listo
+  const pasos = o.entrega === "retiro"
+    ? [["Pedido recibido", "Te mandamos el detalle por mail"], ["Pago confirmado", o.pago === "efectivo" ? "Lo pagás al retirar" : "Comprobante guardado en la app"], ["Preparando tu pedido", "Lo dejamos listo en recepción"], ["Listo para retirar", `${STUDIO.direccion} · lun a vie 8 a 13 y 15:30 a 20`]]
+    : [["Pedido recibido", "Te mandamos el detalle por mail"], ["Pago confirmado", "Comprobante guardado en la app"], ["Preparando el envío", "Coordinamos el horario por la app"], ["En camino", "2 a 4 días hábiles"]];
   return (
     <div className="screen">
       <TopBar onBack={() => app.tab("tienda")} title={`Pedido #${o.num}`} right={<button className="icon-btn" aria-label="Mis pedidos" onClick={() => app.go("pedidos")}><Icon name="bag" /></button>} />
@@ -262,6 +283,15 @@ export function Pedido({ app, params }) {
         </div>
         {pendiente && <><CodigoEfectivo codigo={o.codigo} monto={o.total} vence="próximas 48 h" /><Btn kind="neutral" onClick={() => { app.dispatch({ type: "pedidoPagado", num: o.num }); app.toast("Pago registrado en recepción."); }}><Icon name="store" size={18} /> Simular pago en recepción</Btn></>}
         <div className="card p col g12">
+          <h2 className="display h2" style={{ fontSize: 16 }}>Seguimiento</h2>
+          <div className="timeline">
+            {pasos.map(([t, sub], k) => { const done = k < etapa; const now = k === etapa; return (
+              <div key={t} className={"step" + (done ? " done" : "") + (now ? " now" : "")}><span className="dot">{done && <Icon name="check" size={13} stroke={3} color="#fff" />}</span><div className="col" style={{ gap: 1 }}><span className="small" style={{ fontWeight: done || now ? 600 : 500, color: done || now ? "var(--ink)" : "var(--gris-2)" }}>{t}</span><span className="xs muted">{sub}</span></div></div>
+            ); })}
+          </div>
+          {etapa < 3 && !pendiente && <span className="xs" style={{ color: "var(--gris-2)" }}>Simulación acelerada: el pedido avanza solo en los próximos minutos.</span>}
+        </div>
+        <div className="card p col g12">
           <div className="row between xs muted"><span>Pedido</span><span className="b" style={{ color: "var(--ink)" }}>#{o.num}</span></div>
           <div className="row between xs muted"><span>Estado</span><Tag tone={pendiente ? "clay" : ""}>{o.estado}</Tag></div>
           <div className="hr" />
@@ -271,7 +301,7 @@ export function Pedido({ app, params }) {
           <div className="row between" style={{ alignItems: "baseline" }}><span className="b">Total</span><span className="display" style={{ fontSize: 20 }}>{fmt(o.total)}</span></div>
           <div className="hr" />
           <div className="row g12"><Icon name="store" color="var(--sage-800)" /><div className="col" style={{ gap: 1 }}><span className="small b">{o.entrega === "retiro" ? "Retiro en el estudio" : "Envío a domicilio"}</span><span className="xs muted">{o.entrega === "retiro" ? `${STUDIO.direccion}, ${STUDIO.barrio} · lun a vie 8 a 13 y 15:30 a 20` : `${o.datos.dir} (${o.datos.cp}) · 2 a 4 días hábiles`}</span></div></div>
-          <div className="row g12"><Icon name="card" color="var(--sage-800)" /><span className="xs muted">{msg}</span></div>
+          <div className="row g12"><Icon name="card" color="var(--sage-800)" /><span className="xs muted">{msg}{o.cuotas > 1 ? ` En ${o.cuotas} cuotas.` : ""}</span></div>
         </div>
       </div></div>
       <div className="footer"><Btn onClick={() => app.tab("tienda")}>Volver a la tienda</Btn><Btn kind="ghost" onClick={() => app.tab("inicio")}>Ir al inicio</Btn></div>

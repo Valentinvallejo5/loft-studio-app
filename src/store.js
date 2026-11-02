@@ -105,6 +105,7 @@ function reducer(st, a) {
     case "logout": return initialState();
     case "reset": return initialState();
     case "user": return { ...st, user: { ...st.user, ...a.data } };
+    case "avatar": return { ...st, user: { ...st.user, foto: a.foto || null } };
     case "ajustes": return { ...st, ajustes: { ...st.ajustes, ...a.data } };
     case "onboarded": return { ...st, onboarded: true, favs: a.favs && a.favs.length ? a.favs : st.favs };
     case "checkin": return st.checkins.includes(a.id) ? st : { ...st, checkins: [...st.checkins, a.id], notifs: [notif("¡Check-in listo!", "Buena clase. Dejá el celu en el locker y a moverse.", {}), ...st.notifs] };
@@ -166,7 +167,7 @@ function reducer(st, a) {
     case "pedido": {
       const units = st.cart.reduce((s, l) => s + l.qty, 0);
       const num = `LS-${st.pedidoN}`;
-      const ped = { num, items: st.cart, total: units * MAT_PRICE, entrega: a.entrega, pago: a.pago, datos: a.datos, fecha: Date.now(), estado: a.pago === "efectivo" ? "Reservado · pagás al retirar" : "Pagado", comprobante: a.comprobante || null, codigo: a.pago === "efectivo" ? "LS-" + String(2000 + (st.pedidoN % 7000)) : null };
+      const ped = { num, items: st.cart, total: units * MAT_PRICE, entrega: a.entrega, pago: a.pago, datos: a.datos, fecha: Date.now(), estado: a.pago === "efectivo" ? "Reservado · pagás al retirar" : "Pagado", comprobante: a.comprobante || null, cuotas: a.cuotas || 1, codigo: a.pago === "efectivo" ? "LS-" + String(2000 + (st.pedidoN % 7000)) : null };
       const n = notif("Pedido confirmado", `#${num} · ${units} ${units === 1 ? "mat" : "mats"}. ${a.entrega === "retiro" ? "Te avisamos cuando esté listo para retirar." : "Coordinamos el envío por la app."}`, { go: ["pedido", { num }] });
       return { ...st, pedidoN: st.pedidoN + 1, pedidos: [ped, ...st.pedidos], cart: [], notifs: [n, ...st.notifs] };
     }

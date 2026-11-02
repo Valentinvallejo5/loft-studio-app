@@ -2,13 +2,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import "./styles.css";
 import { useStore, esPasada, hoy, fmtCorta } from "./store.js";
 import { CUPO, STUDIO } from "./data.js";
-import { Icon, Toast } from "./ui.jsx";
+import { Icon, Logo, Toast } from "./ui.jsx";
 import { Bienvenida, Login } from "./screens/auth.jsx";
 import { Clases, Detalle, Eventos, Packs } from "./screens/clases.jsx";
 import { Carrito, Checkout, Pedido, Pedidos, Producto, Tienda } from "./screens/tienda.jsx";
 import { Estudio, Inicio, Notifs, Perfil } from "./screens/inicio.jsx";
+import { Ayuda, Panel } from "./screens/panel.jsx";
 
-const SCREENS = { bienvenida: Bienvenida, login: Login, inicio: Inicio, clases: Clases, detalle: Detalle, packs: Packs, eventos: Eventos, tienda: Tienda, producto: Producto, carrito: Carrito, checkout: Checkout, pedido: Pedido, pedidos: Pedidos, perfil: Perfil, notifs: Notifs, estudio: Estudio };
+const SCREENS = { bienvenida: Bienvenida, login: Login, inicio: Inicio, clases: Clases, detalle: Detalle, packs: Packs, eventos: Eventos, tienda: Tienda, producto: Producto, carrito: Carrito, checkout: Checkout, pedido: Pedido, pedidos: Pedidos, perfil: Perfil, notifs: Notifs, estudio: Estudio, panel: Panel, ayuda: Ayuda };
 const TABS = [["inicio", "Inicio", "home"], ["clases", "Clases", "cal"], ["tienda", "Tienda", "bag"], ["perfil", "Perfil", "user"]];
 const CON_TABS = new Set(TABS.map((t) => t[0]));
 
@@ -37,6 +38,11 @@ export default function App() {
   const setToast = useCallback((v) => setToastRaw(v ? { ...v, k: Date.now() } : null), []);
   const scrollRef = useRef(null);
   const [scale, setScale] = useState(1);
+  const [splash, setSplash] = useState(true);
+  useEffect(() => { const t = setTimeout(() => setSplash(false), 2100); return () => clearTimeout(t); }, []);
+  const prevLen = useRef(nav.stack.length);
+  const dir = nav.stack.length < prevLen.current ? "back" : nav.stack.length === prevLen.current ? "tabswitch" : "fwd";
+  useEffect(() => { prevLen.current = nav.stack.length; });
   useEffect(() => {
     const fit = () => { if (window.innerWidth <= 520) return setScale(1); setScale(Math.min(1, (window.innerHeight - 40) / 884, (window.innerWidth - 40) / 430)); };
     fit(); window.addEventListener("resize", fit); return () => window.removeEventListener("resize", fit);
@@ -89,7 +95,10 @@ export default function App() {
       <div className="phone" ref={scrollRef}>
         <StatusBar />
         <div className="notch-pad" />
-        <View key={cur.name + JSON.stringify(cur.params)} app={app} params={cur.params} />
+        <div key={cur.name + JSON.stringify(cur.params)} className={"screen " + (dir === "back" ? "back" : dir === "tabswitch" ? "tabswitch" : "")} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <View app={app} params={cur.params} />
+        </div>
+        {splash && <Splash />}
         {conTabs && (
           <nav className="tabbar" aria-label="Navegación principal">
             {TABS.map(([k, l, ic]) => <button key={k} aria-current={cur.name === k ? "page" : undefined} onClick={() => nav.reset(k)}><Icon name={ic} />{l}{k === "tienda" && app.cartCount > 0 && <span className="badge" style={{ top: 4, right: "calc(50% - 22px)" }}>{app.cartCount}</span>}</button>)}
@@ -99,6 +108,18 @@ export default function App() {
         <Toast t={toast?.t} k={toast?.k} label={toast?.undo ? "Deshacer" : "Ver"} onAction={toast?.undo ? () => { dispatch({ type: "deshacer" }); setToast({ t: "Listo, tu lugar sigue reservado." }); } : toast?.go ? () => { nav.go(...toast.go); setToast(null); } : undefined} onClose={() => setToast(null)} />
       </div>
       </div>
+    </div>
+  );
+}
+
+function Splash() {
+  return (
+    <div className="splash" aria-hidden="true">
+      <span className="spark" style={{ top: "38%", left: "30%" }}><Icon name="spark" size={10} /></span>
+      <span className="spark" style={{ top: "56%", left: "68%", animationDelay: "0.5s" }}><Icon name="spark" size={8} /></span>
+      <span className="spark" style={{ top: "34%", left: "66%", animationDelay: "0.9s" }}><Icon name="spark" size={7} /></span>
+      <span className="mark"><Logo h={48} /></span>
+      <span className="sub">Donde entrenar se vuelve tu ritual</span>
     </div>
   );
 }

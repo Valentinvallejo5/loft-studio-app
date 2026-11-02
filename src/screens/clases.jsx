@@ -216,6 +216,7 @@ export function Detalle({ app, params }) {
   const headBg = tone === "clay" ? "var(--rosa-50)" : tone === "sand" ? "var(--arena)" : "var(--sage-50)";
   const headInk = tone === "clay" ? "#9a5a5e" : tone === "sand" ? "var(--ink-2)" : "var(--sage-800)";
   const otras = app.clases.filter((x) => x.tipo === c.tipo && x.id !== c.id && !esPasada(x) && app.libres(x) > 0).slice(0, 3);
+  const foto = { barre: "hero-barre", vinyasa: "yoga-mats", integral: "yoga-mats", stretching: "mats-plantas" }[c.tipo];
 
   const [comp, setComp] = useState(null);
   const reservar = () => {
@@ -232,15 +233,20 @@ export function Detalle({ app, params }) {
 
   return (
     <div className="screen">
-      <TopBar onBack={app.back} right={<><button className="icon-btn" aria-label="Compartir" onClick={share}><Icon name="share" /></button><button className="icon-btn" aria-pressed={fav} aria-label={fav ? "Quitar de favoritas" : "Marcar favorita"} onClick={() => { app.dispatch({ type: "fav", id: c.tipo }); app.toast(fav ? "Quitada de tus favoritas." : "Guardada en favoritas. La vas a ver primero en Inicio."); }}><Icon name="heart" fill={fav ? "var(--sage-700)" : "none"} color={fav ? "var(--sage-700)" : "currentColor"} /></button></>} />
-      <div className="scroll"><div className="pad" style={{ paddingTop: 0 }}>
-        <div className="col g14" style={{ background: headBg, borderRadius: 22, padding: 20 }}>
-          <div className="row g6 wrap"><Tag tone="white">{c.nivel}</Tag><Tag tone="white">{c.dur} min</Tag><Tag tone="white">Presencial</Tag>{liberado && <Tag tone="alert">Lugar liberado para vos</Tag>}</div>
-          <h1 className="display h1" style={{ fontSize: 30 }}>{c.nombreLargo || c.nombre}</h1>
-          <div className="col g8 small">
-            <span className="row g8"><Icon name="clock" size={18} color={headInk} />{c.fecha === hoy() ? "Hoy" : fmtFecha(c.fecha, true)} · {c.hora} a {sumar(c.hora, c.dur)}</span>
-            <a className="row g8" href={mapsUrl} target="_blank" rel="noreferrer" style={{ color: "inherit", textDecoration: "none" }}><Icon name="pin" size={18} color={headInk} />{STUDIO.direccion}, {STUDIO.barrio} <span className="xs b" style={{ color: headInk, textDecoration: "underline" }}>Cómo llegar</span></a>
+      <TopBar transparent onBack={app.back} right={<><button className="icon-btn white" aria-label="Compartir" onClick={share}><Icon name="share" /></button><button className="icon-btn white" aria-pressed={fav} aria-label={fav ? "Quitar de favoritas" : "Marcar favorita"} onClick={() => { app.dispatch({ type: "fav", id: c.tipo }); app.toast(fav ? "Quitada de tus favoritas." : "Guardada en favoritas. La vas a ver primero en Inicio."); }}><Icon name="heart" fill={fav ? "var(--sage-700)" : "none"} color={fav ? "var(--sage-700)" : "currentColor"} /></button></>} />
+      <div className="scroll">
+        <div className="cover">
+          <Photo name={foto} alt="" cover h="100%" radius={0} />
+          <div className="shade" />
+          <div className="txt">
+            <div className="row g6 wrap"><Tag tone="white">{c.nivel}</Tag><Tag tone="white">{c.dur} min</Tag><Tag tone="white">Presencial</Tag>{liberado && <Tag tone="alert">Lugar liberado para vos</Tag>}</div>
+            <h1 className="display h1" style={{ fontSize: 30, color: "#fff" }}>{c.nombreLargo || c.nombre}</h1>
           </div>
+        </div>
+        <div className="pad" style={{ paddingTop: 16 }}>
+        <div className="col g8 small" style={{ background: headBg, borderRadius: 18, padding: "14px 16px" }}>
+          <span className="row g8"><Icon name="clock" size={18} color={headInk} />{c.fecha === hoy() ? "Hoy" : fmtFecha(c.fecha, true)} · {c.hora} a {sumar(c.hora, c.dur)}</span>
+          <a className="row g8" href={mapsUrl} target="_blank" rel="noreferrer" style={{ color: "inherit", textDecoration: "none" }}><Icon name="pin" size={18} color={headInk} />{STUDIO.direccion}, {STUDIO.barrio} <span className="xs b" style={{ color: headInk, textDecoration: "underline" }}>Cómo llegar</span></a>
         </div>
 
         <div className="col g8">
